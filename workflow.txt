@@ -1,0 +1,78 @@
+SNTA Login:
+
+First page : Run name selection
+
+On selection of run, user will see IDR page.
+
+On IDR page there will 4 options. Also give an option to select Quarter. And display 3 months of a Quarter with previous 3 months.  (First Quarter = April to June)
+
+On click user will see another page with table like structure, with editable column names and add row functionality. (6 columns)
+
+On this page give option to select multiple plazas and also give due date in form. Upon submission mail will be sent to all emails for respective plazas. Due date will be same for all plazas.
+
+In mails include audit-coordinator in cc.
+
+For different IDR types different users email IDs needs to configured.
+
+SNTA can see uploaded files plaza wise and reject with reason. Email for this must be sent to client requesting to re-upload.
+
+Dashboard : Display statistics for all plazas, with selection functionality.
+
+
+
+Flow : First Month range selection with year, then select plazas, Then select scop with required documents,  (Forget run, and quarter)
+
+There can be multiple file upload for same document type and month and plaza.
+
+Provide only option to reject with reason. By default all documents are approved.
+
+Plaza creation (give email dropdown from created users). (users with role = client)
+
+Reminder at each 3 days.
+
+Maintain communication matrix.
+
+
+Conflict whene plaza details gets changed.
+
+
+
+Quarter 1 : Jan to June  (set 1 plaza 20)
+
+Quarter 2 : April to Sep (set 2 plaza 20)
+
+Quarter 3 : July to Dec (set 1 plaza 20)
+
+Quarter 4 : Oct to March  (set 2 plaza 20)
+
+
+
+
+
+
+
+
+
+
+Table Structure. 
+IDR_master = financial_year, quarter, plaza_name, request_date, due_date, document_url, status, reason, email_sent
+
+
+
+
+
+Ask :
+
+What is the meaning of different IDR type?
+
+Will run names be different for each financial year?
+
+Will user have to submit files for 6 months or 3 months of selected quarter?
+
+Will each plaza have a user who will submit document?
+
+How we will allow users to upload document?
+
+What is the role of Audit and Client Co-ordinator?
+
+
