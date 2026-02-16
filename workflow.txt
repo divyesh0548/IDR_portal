@@ -20,7 +20,7 @@ Dashboard : Display statistics for all plazas, with selection functionality.
 
 
 
-Flow : First Month range selection with year, then select plazas, Then select scop with required documents,  (Forget run, and quarter)
+Flow : First Month range selection with year, then select plazas, Then select scop,  (Forget run, and quarter)
 
 There can be multiple file upload for same document type and month and plaza.
 
@@ -57,22 +57,7 @@ Quarter 4 : Oct to March  (set 2 plaza 20)
 Table Structure. 
 IDR_master = financial_year, quarter, plaza_name, request_date, due_date, document_url, status, reason, email_sent
 
+scope_master = plaza_name, email_id, scope
 
-
-
-
-Ask :
-
-What is the meaning of different IDR type?
-
-Will run names be different for each financial year?
-
-Will user have to submit files for 6 months or 3 months of selected quarter?
-
-Will each plaza have a user who will submit document?
-
-How we will allow users to upload document?
-
-What is the role of Audit and Client Co-ordinator?
 
 
