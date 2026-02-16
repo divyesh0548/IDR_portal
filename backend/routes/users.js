@@ -444,7 +444,7 @@ router.post('/assign-plaza', requireAuth, async (req, res) => {
       });
     }
 
-    if (userCheck.rows[0].role !== 'client') {
+    if (userCheck.rows[0].role?.toLowerCase() !== 'client') {
       return res.status(400).json({
         success: false,
         message: 'Can only assign plaza to client users',
@@ -464,6 +464,106 @@ router.post('/assign-plaza', requireAuth, async (req, res) => {
     });
   } catch (error) {
     console.error('Assign plaza error:', error);
+    return res.status(500).json({
+      success: false,
+      message: 'Internal server error',
+    });
+  }
+});
+
+/**
+ * PUT /api/users/update-plaza-assignment
+ * Update plaza assignment: remove plaza_name from old email_id and assign to new email_id
+ */
+router.put('/update-plaza-assignment', requireAuth, async (req, res) => {
+  const client = await pool.connect();
+  
+  try {
+    const { plaza_name, old_email_id, new_email_id } = req.body;
+
+    if (!plaza_name || !old_email_id || !new_email_id) {
+      client.release();
+      return res.status(400).json({
+        success: false,
+        message: 'Plaza name, old email ID, and new email ID are required',
+      });
+    }
+
+    // Start transaction
+    await client.query('BEGIN');
+
+    // Check if new user exists and is a client
+    const newUserCheck = await client.query(
+      'SELECT id, role, plaza_name FROM users WHERE email_id = $1',
+      [new_email_id]
+    );
+
+    if (newUserCheck.rows.length === 0) {
+      await client.query('ROLLBACK');
+      client.release();
+      return res.status(404).json({
+        success: false,
+        message: 'New user not found',
+      });
+    }
+
+    if (newUserCheck.rows[0].role?.toLowerCase() !== 'client') {
+      await client.query('ROLLBACK');
+      client.release();
+      return res.status(400).json({
+        success: false,
+        message: 'Can only assign plaza to client users',
+      });
+    }
+
+    if (newUserCheck.rows[0].plaza_name && newUserCheck.rows[0].plaza_name !== '') {
+      await client.query('ROLLBACK');
+      client.release();
+      return res.status(400).json({
+        success: false,
+        message: 'New user already has a plaza assigned',
+      });
+    }
+
+    // Check if old user exists
+    const oldUserCheck = await client.query(
+      'SELECT id FROM users WHERE email_id = $1',
+      [old_email_id]
+    );
+
+    if (oldUserCheck.rows.length === 0) {
+      await client.query('ROLLBACK');
+      client.release();
+      return res.status(404).json({
+        success: false,
+        message: 'Old user not found',
+      });
+    }
+
+    // Remove plaza_name from old user
+    await client.query(
+      'UPDATE users SET plaza_name = NULL WHERE email_id = $1',
+      [old_email_id]
+    );
+
+    // Assign plaza_name to new user (convert to lowercase)
+    await client.query(
+      'UPDATE users SET plaza_name = LOWER($1) WHERE email_id = $2',
+      [plaza_name, new_email_id]
+    );
+
+    // Commit transaction
+    await client.query('COMMIT');
+    client.release();
+
+    return res.status(200).json({
+      success: true,
+      message: 'Plaza assignment updated successfully',
+    });
+  } catch (error) {
+    await client.query('ROLLBACK');
+    client.release();
+    console.error('Update plaza assignment error:', error);
     return res.status(500).json({
       success: false,
       message: 'Internal server error',

@@ -45,8 +45,33 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 
 // Middleware
+// Configure allowed origins for CORS
+const allowedOrigins = [
+  'http://localhost:5174',
+  process.env.FRONTEND_URL,
+].filter(Boolean); // Remove any undefined values
+
 app.use(cors({
-  origin: process.env.FRONTEND_URL || 'http://localhost:5174',
+  origin: function (origin, callback) {
+    // Allow requests with no origin (like mobile apps or curl requests)
+    if (!origin) return callback(null, true);
+    
+    // Check if origin is in allowed list
+    if (allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      // For development, allow localhost and IP-based origins on port 5174
+      const isLocalhost = origin.startsWith('http://localhost:') || 
+                         origin.startsWith('http://127.0.0.1:');
+      const isLocalNetwork = origin.match(/^http:\/\/192\.168\.\d+\.\d+:5174$/);
+      
+      if (isLocalhost || isLocalNetwork) {
+        callback(null, true);
+      } else {
+        callback(new Error('Not allowed by CORS'));
+      }
+    }
+  },
   credentials: true, // Allow cookies to be sent
 }));
 app.use(express.json());

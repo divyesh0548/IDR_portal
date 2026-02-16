@@ -73,7 +73,7 @@ router.post('/login', async (req, res) => {
     res.cookie('sessionToken', encryptedToken, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production', // Only send over HTTPS in production
-      sameSite: 'strict',
+      sameSite: 'Lax',
       maxAge: 24 * 60 * 60 * 1000, // 24 hours in milliseconds
       path: '/',
     });
