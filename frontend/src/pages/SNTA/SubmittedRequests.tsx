@@ -101,7 +101,7 @@ export default function SubmittedRequests() {
       setRecords(data.records || [])
     } catch (error) {
       console.error("Error fetching submitted requests:", error)
-      toast.error("Failed to load submitted requests")
+      toast.error("Failed to load submitted document requests")
       setRecords([])
     } finally {
       setIsLoading(false)
@@ -188,15 +188,15 @@ export default function SubmittedRequests() {
 
       {/* Main Content */}
       <div className="flex flex-col flex-1 overflow-hidden">
-        <Navbar title="Submitted Requests" />
+        <Navbar title="Submitted Document Requests" />
         <main className="flex-1 overflow-y-auto p-6">
           <div className="container mx-auto">
             <Card>
               <CardHeader>
                 <div className="flex items-center justify-between">
-                  <CardTitle>Submitted Requests</CardTitle>
+                  <CardTitle>Submitted Document Requests</CardTitle>
                   <Button onClick={() => navigate('/snta/idr/table')}>
-                    New Request
+                    New Document Request
                   </Button>
                 </div>
               </CardHeader>
@@ -206,7 +206,7 @@ export default function SubmittedRequests() {
                   <div className="space-y-2 w-[200px]">
                     <Label htmlFor="scope">Scope</Label>
                     <Select value={selectedScope} onValueChange={setSelectedScope}>
-                      <SelectTrigger id="scope">
+                      <SelectTrigger id="scope" className="w-full">
                         <SelectValue placeholder="Select scope" />
                       </SelectTrigger>
                       <SelectContent>
@@ -221,12 +221,12 @@ export default function SubmittedRequests() {
                   </div>
                   <div className="space-y-2 w-[200px]">
                     <Label htmlFor="status">Status</Label>
-                    <Select value={statusFilter} onValueChange={setStatusFilter}>
-                      <SelectTrigger id="status">
+                    <Select value={statusFilter} onValueChange={setStatusFilter} >
+                      <SelectTrigger id="status"  className="w-full">
                         <SelectValue placeholder="Select status" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="all">All Requests</SelectItem>
+                        <SelectItem value="all">All Document Requests</SelectItem>
                         <SelectItem value="pending">Pending</SelectItem>
                         <SelectItem value="done">Done</SelectItem>
                       </SelectContent>
@@ -239,7 +239,7 @@ export default function SubmittedRequests() {
                       onValueChange={setPlazaFilter}
                       disabled={records.length === 0}
                     >
-                      <SelectTrigger id="plaza">
+                      <SelectTrigger id="plaza" className="w-full">
                         <SelectValue placeholder="Select plaza" />
                       </SelectTrigger>
                       <SelectContent>
@@ -259,7 +259,7 @@ export default function SubmittedRequests() {
                 {/* Requests Display */}
                 {groups.length > 0 && (
                   <div className="space-y-4">
-                    <h3 className="text-lg font-semibold">Requests ({groups.length})</h3>
+                    <h3 className="text-lg font-semibold">Document Requests ({groups.length})</h3>
                     <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
                       {groups.map((group, index) => {
                         // Check if all plazas in this group are done
@@ -269,56 +269,62 @@ export default function SubmittedRequests() {
                         return (
                         <Card
                           key={index}
-                          className={`cursor-pointer hover:bg-accent transition-colors ${
-                            allDone ? 'border-l-4 border-l-green-500 bg-green-50/30 dark:bg-green-950/20 dark:border-l-green-400' : ''
+                          className={`cursor-pointer hover:shadow-md transition-all duration-200 ${
+                            allDone 
+                              ? 'border-l-4 border-l-green-500 bg-green-50/30 dark:bg-green-950/20 dark:border-l-green-400 hover:bg-green-50/40 dark:hover:bg-green-950/30' 
+                              : 'hover:bg-accent/50'
                           }`}
                           onClick={() => handleGroupClick(group)}
                         >
-                          <CardHeader>
+                          <CardHeader className="pb-3">
                             <div className="flex items-center justify-between">
-                              <CardTitle className="text-base">
-                                Request {index + 1}
+                              <CardTitle className="text-base font-semibold">
+                                Document Request {index + 1}
                               </CardTitle>
                               {allDone && (
-                                <Badge variant="default" className="bg-green-600">Done</Badge>
+                                <Badge variant="default" className="bg-green-600 hover:bg-green-700">Done</Badge>
                               )}
                               {someDone && !allDone && (
-                                <Badge variant="secondary" className="bg-yellow-500">Partial</Badge>
+                                <Badge variant="secondary" className="bg-yellow-500 hover:bg-yellow-600 text-white">Partial</Badge>
                               )}
                             </div>
                           </CardHeader>
                           <CardContent>
-                            <div className="space-y-2 text-sm">
-                              <div>
-                                <span className="text-muted-foreground">From:</span>{" "}
-                                <span className="font-medium">{formatDate(group.from_date)}</span>
+                            <div className="space-y-2.5 text-sm">
+                              <div className="flex items-center gap-2">
+                                <span className="text-muted-foreground w-16 text-left">From:</span>
+                                <span className="font-medium flex-1">{formatDate(group.from_date)}</span>
                               </div>
-                              <div>
-                                <span className="text-muted-foreground">To:</span>{" "}
-                                <span className="font-medium">{formatDate(group.to_date)}</span>
+                              <div className="flex items-center gap-2">
+                                <span className="text-muted-foreground w-16 text-left">To:</span>
+                                <span className="font-medium flex-1">{formatDate(group.to_date)}</span>
                               </div>
-                              <div>
-                                <span className="text-muted-foreground">Due:</span>{" "}
-                                <span className="font-medium">{formatDate(group.due_date)}</span>
+                              <div className="flex items-center gap-2">
+                                <span className="text-muted-foreground w-16 text-left">Due:</span>
+                                <span className="font-medium flex-1">{formatDate(group.due_date)}</span>
                               </div>
-                              <div className="pt-2 border-t">
-                                <span className="text-muted-foreground">Plazas:</span>{" "}
-                                <span className="font-medium">{group.plazas.length}</span>
-                                <div className="mt-2 flex flex-wrap gap-1">
-                                  {group.plazas.slice(0, 3).map((record) => (
-                                    <span
-                                      key={record.id}
-                                      className="text-xs bg-secondary px-2 py-1 rounded"
-                                    >
-                                      {formatPlazaName(record.plaza_name)}
-                                    </span>
-                                  ))}
-                                  {group.plazas.length > 3 && (
-                                    <span className="text-xs text-muted-foreground">
-                                      +{group.plazas.length - 3} more
-                                    </span>
-                                  )}
+                              <div className="pt-2.5 border-t">
+                                <div className="flex items-start gap-2">
+                                  <span className="text-muted-foreground w-16 text-left pt-0.5">Plazas:</span>
+                                  <div className="flex-1 pl-0">
+                                    <span className="font-medium">{group.plazas.length}</span>
+                                  </div>
                                 </div>
+                                <div className="mt-2 flex flex-wrap gap-2 pl-0">
+                                      {group.plazas.slice(0, 3).map((record) => (
+                                        <span
+                                          key={record.id}
+                                          className="text-xs bg-secondary px-2 py-1 rounded-sm"
+                                        >
+                                          {formatPlazaName(record.plaza_name)}
+                                        </span>
+                                      ))}
+                                      {group.plazas.length > 3 && (
+                                        <span className="text-xs text-muted-foreground">
+                                          +{group.plazas.length - 3} more
+                                        </span>
+                                      )}
+                                    </div>
                               </div>
                             </div>
                           </CardContent>
@@ -333,7 +339,7 @@ export default function SubmittedRequests() {
                 {/* Empty States */}
                 {!selectedScope && (
                   <div className="text-center py-8 text-muted-foreground">
-                    Please select a scope to view submitted requests.
+                    Please select a scope to view submitted document requests.
                   </div>
                 )}
 
@@ -345,7 +351,7 @@ export default function SubmittedRequests() {
 
                 {selectedScope && !isLoading && groups.length === 0 && (
                   <div className="text-center py-8 text-muted-foreground">
-                    No submitted requests found for the selected scope.
+                    No submitted document requests found for the selected scope.
                   </div>
                 )}
               </CardContent>

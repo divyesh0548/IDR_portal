@@ -233,6 +233,29 @@ export const api = {
     return data;
   },
 
+  async updatePlazaAssignment(payload: {
+    plaza_name: string;
+    old_email_id: string;
+    new_email_id: string;
+  }) {
+    const response = await fetch(`${API_BASE_URL}/api/users/update-plaza-assignment`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      credentials: 'include',
+      body: JSON.stringify(payload),
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(data.message || 'Failed to update plaza assignment');
+    }
+
+    return data;
+  },
+
   async createScope(payload: {
     scope_name: string;
     required_documents: string;

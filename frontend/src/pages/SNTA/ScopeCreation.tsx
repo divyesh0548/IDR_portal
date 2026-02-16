@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Sidebar } from "@/components/layout/Sidebar"
 import { Navbar } from "@/components/layout/Navbar"
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
@@ -6,9 +6,23 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Menu, X } from "lucide-react"
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table"
+import { Menu, X, Loader2 } from "lucide-react"
 import { api } from "@/lib/api"
 import toast from "react-hot-toast"
+
+interface Scope {
+  id: number
+  scope_name: string
+  required_documents: string
+}
 
 export default function ScopeCreation() {
   const [isCollapsed, setIsCollapsed] = useState(false)
@@ -17,6 +31,8 @@ export default function ScopeCreation() {
   const [documentInput, setDocumentInput] = useState("")
   const [documents, setDocuments] = useState<string[]>([])
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [scopes, setScopes] = useState<Scope[]>([])
+  const [isLoadingScopes, setIsLoadingScopes] = useState(false)
 
   const handleAddDocument = () => {
     const trimmed = documentInput.trim()
@@ -30,6 +46,23 @@ export default function ScopeCreation() {
 
   const handleRemoveDocument = (index: number) => {
     setDocuments(documents.filter((_, i) => i !== index))
+  }
+
+  useEffect(() => {
+    fetchScopes()
+  }, [])
+
+  const fetchScopes = async () => {
+    setIsLoadingScopes(true)
+    try {
+      const data = await api.getScopes()
+      setScopes(data.scopes || [])
+    } catch (error) {
+      console.error("Error fetching scopes:", error)
+      toast.error("Failed to load scopes")
+    } finally {
+      setIsLoadingScopes(false)
+    }
   }
 
   const handleKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
@@ -70,6 +103,9 @@ export default function ScopeCreation() {
       setScopeName("")
       setDocuments([])
       setDocumentInput("")
+      
+      // Refresh scopes list
+      fetchScopes()
     } catch (error) {
       console.error("Error creating scope:", error)
       toast.error(error instanceof Error ? error.message : "Failed to create scope")
@@ -99,9 +135,9 @@ export default function ScopeCreation() {
 
       {/* Main Content */}
       <div className="flex flex-col flex-1 overflow-hidden">
-        <Navbar title="Scope Creation" />
+        <Navbar title="Scope" />
         <main className="flex-1 overflow-y-auto p-6">
-          <div className="container mx-auto max-w-2xl">
+          <div className="container mx-auto max-w-4xl space-y-6">
             <Card>
               <CardHeader>
                 <CardTitle>Create Scope</CardTitle>
@@ -176,6 +212,49 @@ export default function ScopeCreation() {
                     </Button>
                   </div>
                 </form>
+              </CardContent>
+            </Card>
+
+            {/* All Scopes List */}
+            <Card>
+              <CardHeader>
+                <CardTitle>All Scopes</CardTitle>
+                <CardDescription>
+                  List of all scopes with their required documents
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                {isLoadingScopes ? (
+                  <div className="flex items-center justify-center py-8">
+                    <Loader2 className="h-6 w-6 animate-spin mr-2" />
+                    <span>Loading scopes...</span>
+                  </div>
+                ) : scopes.length === 0 ? (
+                  <div className="text-center py-8 text-muted-foreground">
+                    No scopes found.
+                  </div>
+                ) : (
+                  <div className="border rounded-lg overflow-x-auto">
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead>Scope Name</TableHead>
+                          <TableHead>Required Documents</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {scopes.map((scope) => (
+                          <TableRow key={scope.id}>
+                            <TableCell className="font-medium">{scope.scope_name}</TableCell>
+                            <TableCell>
+                              {scope.required_documents || "-"}
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  </div>
+                )}
               </CardContent>
             </Card>
           </div>

@@ -4,7 +4,6 @@ import { Button } from "@/components/ui/button"
 import { 
   LayoutDashboard, 
   FileText, 
-  Settings, 
   ChevronLeft,
   ChevronRight,
   PlayCircle,
@@ -19,11 +18,10 @@ interface SidebarProps {
 
 const menuItems = [
   { icon: LayoutDashboard, label: "Dashboard", path: "/snta/dashboard" },
-  { icon: PlayCircle, label: "Run Master", path: "/snta/run_master" },
+  { icon: PlayCircle, label: "IDR Request", path: "/snta/run_master" },
   { icon: FileText, label: "User", path: "/snta/users" },
-  { icon: Building2, label: "Plaza Creation", path: "/snta/plaza-creation" },
-  { icon: FolderOpen, label: "Scope Creation", path: "/snta/scope-creation" },
-  { icon: Settings, label: "Settings", path: "/snta/settings" },
+  { icon: Building2, label: "Plaza", path: "/snta/plaza-creation" },
+  { icon: FolderOpen, label: "Scope", path: "/snta/scope-creation" },
 ]
 
 export function Sidebar({ isCollapsed, onToggle }: SidebarProps) {

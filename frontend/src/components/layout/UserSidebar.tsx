@@ -3,9 +3,7 @@ import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import {
   LayoutDashboard,
-  ClipboardList,
   FileText,
-  Settings,
   ChevronLeft,
   ChevronRight,
 } from "lucide-react"
@@ -18,8 +16,6 @@ interface UserSidebarProps {
 const menuItems = [
   { icon: LayoutDashboard, label: "Dashboard", path: "/client/dashboard" },
   { icon: FileText, label: "Document Requests", path: "/client/document-requests" },
-  { icon: ClipboardList, label: "My Tasks", path: "/client/tasks" },
-  { icon: Settings, label: "Settings", path: "/client/settings" },
 ]
 
 export function UserSidebar({ isCollapsed, onToggle }: UserSidebarProps) {

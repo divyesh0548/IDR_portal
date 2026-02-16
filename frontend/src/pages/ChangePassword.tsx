@@ -60,9 +60,9 @@ export default function ChangePassword() {
 
     // Determine where to navigate when the user clicks back based on their role
     const handleBackClick = () => {
-        if (user?.role === "snta") {
+        if (user?.role?.toLowerCase() === "snta") {
             navigate("/snta/dashboard");
-        } else if (user?.role === "client") {
+        } else if (user?.role?.toLowerCase() === "client") {
             navigate("/client/dashboard");
         } else {
             navigate("/dashboard"); // Default case if role is not recognized

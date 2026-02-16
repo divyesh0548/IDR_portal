@@ -1,0 +1,13 @@
+Scope 1 : Revenue Audit
+
+--> Life cycle report, Violation report, Vrn report, Chargeback report
+
+Provide a functionality to add new documents in scope.
+
+Define document type in scope.
+
+Implement delete function based on request from client.
+
+display number of pending documents on client site,
+
+Function to export report for pending and uploaded documents.

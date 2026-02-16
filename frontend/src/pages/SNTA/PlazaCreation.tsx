@@ -6,10 +6,17 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Menu, Search, ChevronDown, Check } from "lucide-react"
+import { Menu, Search, ChevronDown, Check, Edit } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { api } from "@/lib/api"
 import toast from "react-hot-toast"
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog"
 
 interface Client {
   id: number
@@ -36,6 +43,15 @@ export default function PlazaCreation() {
   const [plazaAssignments, setPlazaAssignments] = useState<PlazaAssignment[]>([])
   const [isLoadingAssignments, setIsLoadingAssignments] = useState(false)
   const dropdownRef = useRef<HTMLDivElement>(null)
+  
+  // Update dialog state
+  const [updateDialogOpen, setUpdateDialogOpen] = useState(false)
+  const [updatingPlaza, setUpdatingPlaza] = useState<PlazaAssignment | null>(null)
+  const [updateSelectedEmail, setUpdateSelectedEmail] = useState<string>("")
+  const [isUpdateDropdownOpen, setIsUpdateDropdownOpen] = useState(false)
+  const [updateSearchQuery, setUpdateSearchQuery] = useState("")
+  const [isUpdating, setIsUpdating] = useState(false)
+  const updateDropdownRef = useRef<HTMLDivElement>(null)
 
   // Fetch clients and plaza assignments on component mount
   useEffect(() => {
@@ -50,16 +66,20 @@ export default function PlazaCreation() {
         setIsDropdownOpen(false)
         setSearchQuery("")
       }
+      if (updateDropdownRef.current && !updateDropdownRef.current.contains(event.target as Node)) {
+        setIsUpdateDropdownOpen(false)
+        setUpdateSearchQuery("")
+      }
     }
 
-    if (isDropdownOpen) {
+    if (isDropdownOpen || isUpdateDropdownOpen) {
       document.addEventListener("mousedown", handleClickOutside)
     }
 
     return () => {
       document.removeEventListener("mousedown", handleClickOutside)
     }
-  }, [isDropdownOpen])
+  }, [isDropdownOpen, isUpdateDropdownOpen])
 
   const fetchClients = async () => {
     setIsLoadingClients(true)
@@ -91,6 +111,12 @@ export default function PlazaCreation() {
   const filteredClients = clients.filter((client) =>
     client.email_id.toLowerCase().includes(searchQuery.toLowerCase()) ||
     client.name.toLowerCase().includes(searchQuery.toLowerCase())
+  )
+
+  // Filter clients for update dialog
+  const filteredUpdateClients = clients.filter((client) =>
+    client.email_id.toLowerCase().includes(updateSearchQuery.toLowerCase()) ||
+    client.name.toLowerCase().includes(updateSearchQuery.toLowerCase())
   )
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -132,6 +158,48 @@ export default function PlazaCreation() {
   }
 
   const selectedClient = clients.find((c) => c.email_id === selectedEmail)
+  const updateSelectedClient = clients.find((c) => c.email_id === updateSelectedEmail)
+
+  const handleUpdateClick = (assignment: PlazaAssignment) => {
+    setUpdatingPlaza(assignment)
+    setUpdateSelectedEmail("")
+    setUpdateSearchQuery("")
+    setUpdateDialogOpen(true)
+  }
+
+  const handleUpdateSubmit = async () => {
+    if (!updatingPlaza || !updateSelectedEmail) {
+      toast.error("Please select a new email ID")
+      return
+    }
+
+    if (updateSelectedEmail === updatingPlaza.email_id) {
+      toast.error("Please select a different email ID")
+      return
+    }
+
+    setIsUpdating(true)
+
+    try {
+      await api.updatePlazaAssignment({
+        plaza_name: updatingPlaza.plaza_name,
+        old_email_id: updatingPlaza.email_id,
+        new_email_id: updateSelectedEmail,
+      })
+
+      toast.success("Plaza assignment updated successfully!")
+      setUpdateDialogOpen(false)
+      setUpdatingPlaza(null)
+      setUpdateSelectedEmail("")
+      fetchClients() // Refresh to update available clients
+      fetchPlazaAssignments() // Refresh plaza assignments table
+    } catch (error) {
+      console.error("Error updating plaza assignment:", error)
+      toast.error(error instanceof Error ? error.message : "Failed to update plaza assignment")
+    } finally {
+      setIsUpdating(false)
+    }
+  }
 
   return (
     <div className="flex h-screen overflow-hidden">
@@ -154,7 +222,7 @@ export default function PlazaCreation() {
 
       {/* Main Content */}
       <div className="flex flex-col flex-1 overflow-hidden">
-        <Navbar title="Plaza Creation" />
+        <Navbar title="Plaza" />
         <main className="flex-1 overflow-y-auto p-6">
           <div className="container mx-auto max-w-2xl">
             <Card>
@@ -296,6 +364,7 @@ export default function PlazaCreation() {
                         <tr className="bg-muted">
                           <th className="border p-2 text-left font-semibold">Plaza Name</th>
                           <th className="border p-2 text-left font-semibold">Email ID</th>
+                          <th className="border p-2 text-left font-semibold">Actions</th>
                         </tr>
                       </thead>
                       <tbody>
@@ -309,6 +378,16 @@ export default function PlazaCreation() {
                                 .join(' ')}
                             </td>
                             <td className="border p-2">{assignment.email_id}</td>
+                            <td className="border p-2">
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => handleUpdateClick(assignment)}
+                              >
+                                <Edit className="h-4 w-4 mr-1" />
+                                Update
+                              </Button>
+                            </td>
                           </tr>
                         ))}
                       </tbody>
@@ -320,6 +399,120 @@ export default function PlazaCreation() {
           </div>
         </main>
       </div>
+
+      {/* Update Dialog */}
+      <Dialog open={updateDialogOpen} onOpenChange={setUpdateDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Update Plaza Assignment</DialogTitle>
+            <DialogDescription>
+              Select a new email ID to assign to {updatingPlaza?.plaza_name
+                .replace(/_/g, ' ')
+                .split(' ')
+                .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+                .join(' ')}. The current assignment will be removed.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="update-email-id">New Email ID</Label>
+              <div className="relative" ref={updateDropdownRef}>
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="w-full justify-between"
+                  onClick={() => setIsUpdateDropdownOpen(!isUpdateDropdownOpen)}
+                  disabled={isLoadingClients}
+                >
+                  <span className="text-muted-foreground">
+                    {updateSelectedEmail
+                      ? updateSelectedClient
+                        ? `${updateSelectedClient.email_id}${updateSelectedClient.name ? ` (${updateSelectedClient.name})` : ""}`
+                        : updateSelectedEmail
+                      : "Select email ID..."}
+                  </span>
+                  <ChevronDown
+                    className={cn(
+                      "h-4 w-4 transition-transform",
+                      isUpdateDropdownOpen && "rotate-180"
+                    )}
+                  />
+                </Button>
+                {isUpdateDropdownOpen && (
+                  <div className="absolute z-50 mt-2 w-full rounded-md border bg-popover shadow-lg">
+                    <div className="p-2 border-b">
+                      <div className="relative">
+                        <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+                        <Input
+                          placeholder="Search email..."
+                          value={updateSearchQuery}
+                          onChange={(e) => setUpdateSearchQuery(e.target.value)}
+                          className="pl-8"
+                          autoFocus
+                        />
+                      </div>
+                    </div>
+                    <div className="max-h-[300px] overflow-y-auto">
+                      {filteredUpdateClients.length === 0 ? (
+                        <div className="p-4 text-center text-sm text-muted-foreground">
+                          {isLoadingClients ? "Loading..." : "No clients found"}
+                        </div>
+                      ) : (
+                        <div className="p-1">
+                          {filteredUpdateClients.map((client) => {
+                            const isSelected = updateSelectedEmail === client.email_id
+                            return (
+                              <div
+                                key={client.id}
+                                className={cn(
+                                  "flex items-center gap-2 rounded-sm px-2 py-1.5 text-sm cursor-pointer hover:bg-accent",
+                                  isSelected && "bg-accent"
+                                )}
+                                onClick={() => {
+                                  setUpdateSelectedEmail(client.email_id)
+                                  setIsUpdateDropdownOpen(false)
+                                  setUpdateSearchQuery("")
+                                }}
+                              >
+                                <div className="flex h-4 w-4 items-center justify-center rounded border">
+                                  {isSelected && <Check className="h-3 w-3" />}
+                                </div>
+                                <div className="flex flex-col">
+                                  <span>{client.email_id}</span>
+                                  {client.name && (
+                                    <span className="text-xs text-muted-foreground">
+                                      {client.name}
+                                    </span>
+                                  )}
+                                </div>
+                              </div>
+                            )
+                          })}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+            <div className="flex justify-end gap-2 pt-4">
+              <Button
+                variant="outline"
+                onClick={() => {
+                  setUpdateDialogOpen(false)
+                  setUpdatingPlaza(null)
+                  setUpdateSelectedEmail("")
+                }}
+              >
+                Cancel
+              </Button>
+              <Button onClick={handleUpdateSubmit} disabled={isUpdating || !updateSelectedEmail}>
+                {isUpdating ? "Updating..." : "Update"}
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }

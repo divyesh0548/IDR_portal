@@ -86,26 +86,6 @@ export default function UserDashboard() {
         <main className="flex-1 overflow-y-auto p-6">
           <div className="container mx-auto">
             <h2 className="text-3xl font-bold mb-6">Welcome to your dashboard</h2>
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 mb-6">
-              <div className="p-6 border rounded-lg bg-card">
-                <h3 className="text-lg font-semibold mb-2">My Tasks</h3>
-                <p className="text-sm text-muted-foreground">
-                  View assigned tasks and updates.
-                </p>
-              </div>
-              <div className="p-6 border rounded-lg bg-card">
-                <h3 className="text-lg font-semibold mb-2">Reports</h3>
-                <p className="text-sm text-muted-foreground">
-                  Access your recent reports.
-                </p>
-              </div>
-              <div className="p-6 border rounded-lg bg-card">
-                <h3 className="text-lg font-semibold mb-2">Settings</h3>
-                <p className="text-sm text-muted-foreground">
-                  Update your preferences.
-                </p>
-              </div>
-            </div>
 
             {/* Document Requests Section */}
             {user?.plaza_name && user.plaza_name.trim() !== '' && (

@@ -22,9 +22,9 @@ export default function Login() {
   // Redirect if already authenticated
   useEffect(() => {
     if (!isLoading && isAuthenticated && user) {
-      if (user.role === 'snta') {
+      if (user.role?.toLowerCase() === 'snta') {
         navigate('/snta/dashboard')
-      } else if (user.role === 'client') {
+      } else if (user.role?.toLowerCase() === 'client') {
         navigate('/client/dashboard')
       } else {
         navigate('/dashboard')
@@ -56,9 +56,9 @@ export default function Login() {
         window.location.href = '/change-password';
        } else {
          // Redirect based on role
-         if (data?.role === 'snta') {
+         if (data?.role?.toLowerCase() === 'snta') {
            navigate('/snta/dashboard');
-         } else if (data?.role === 'client') {
+         } else if (data?.role?.toLowerCase() === 'client') {
            navigate('/client/dashboard');
          } else {
            // Add other role redirects here
